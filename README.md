@@ -1,73 +1,141 @@
-# Welcome to your Lovable project
+# 🌸 HAPPIFY — Daily Joy Companion
 
-## Project info
+HAPPIFY is a **science-backed happiness companion web app** designed to help users practice happiness daily through awareness, balance, and small intentional habits.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+This is **not a therapy app**, **not a motivational quotes app**, and **not a crisis intervention tool**.  
+HAPPIFY focuses on **practical happiness practices** covering the body, mind, digital wellness, work/study life, and emotional grounding.
 
-## How can I edit this code?
+🔗 Live App: https://happify.lovable.app
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## ✨ Core Philosophy
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Happiness is not a destination — it is a **daily practice**.
 
-Changes made via Lovable will be committed automatically to this repo.
+HAPPIFY is built on the idea that sustainable happiness comes from:
+- physical relaxation
+- disciplined thinking
+- emotional awareness
+- healthy digital habits
+- meaningful work and daily balance
 
-**Use your preferred IDE**
+The app gently guides users without judgment, pressure, or clinical language.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 Features
 
-Follow these steps:
+### 🔐 Authentication
+- Continue as Guest (no data stored)
+- Email & password login
+- Google authentication
+- Optional profile personalization
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 🤖 AI Happiness Chatbot
+A calm, conversational chatbot that helps users:
+- check in with their current emotional state
+- practice body relaxation
+- reframe negative thoughts
+- build mindful digital habits
+- ground themselves during overwhelm
 
-# Step 3: Install the necessary dependencies.
-npm i
+Chatbot modules include:
+- Happiness Check-In
+- Body Relaxation
+- Mind Discipline & Reframing
+- Digital Detox Coaching
+- Work / Study Happiness
+- Emergency Calm Mode (for overwhelm)
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+---
 
-**Edit a file directly in GitHub**
+### 📓 Happiness Journal
+- Emoji-based mood tracking
+- Reflection and gratitude journaling
+- View past entries (for logged-in users)
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+### 🛠 Happiness Tools
+- Daily happiness habit generator
+- Gratitude log
+- Meditation and silence prompts
+- Digital detox challenges
+- Mindfulness micro-practices
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+### 🌍 Community Happiness
+- Anonymous gratitude wall
+- Positive messages shared by users
+- Like and engagement system
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### ℹ️ About Happiness
+- Simple explanation of the app philosophy
+- Four core pillars of happiness
+- Non-religious, inclusive language
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## 🎨 Design & UX
+- Soft pastel color palette (coral, sage, lavender)
+- Calm typography
+- Rounded cards and gentle animations
+- Mobile-first responsive design
+- Minimal and distraction-free interface
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
+## 🧑‍💻 Tech Stack
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- Frontend: React + TypeScript + Tailwind CSS
+- Backend & Auth: Supabase
+- AI Chatbot: Lovable AI (LLM-powered)
+- Database: PostgreSQL (with Row Level Security)
+- Hosting: Lovable Cloud
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+---
+
+## 🛡 Data & Privacy
+- Guest mode does not store data
+- Logged-in users control their own data
+- Secure authentication and database policies
+- No third-party data selling or tracking
+
+---
+
+## 🎯 Intended Use
+HAPPIFY is designed for:
+- students
+- young professionals
+- anyone seeking calm, balance, and self-awareness
+
+It is meant to feel like:
+> “A quiet friend who helps you come back to yourself.”
+
+---
+
+## 📌 Project Status
+✅ Core features complete  
+✅ Fully functional authentication  
+✅ AI chatbot operational  
+✅ Ready for deployment and demonstration  
+
+---
+
+## 🙌 Acknowledgements
+Inspired by research in:
+- positive psychology
+- mindfulness
+- digital well-being
+- workplace happiness
+- youth emotional resilience
+
+---
+
+🌸 **Practice happiness. Gently. Daily.**
