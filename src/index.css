@@ -2,95 +2,136 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Happify - Warm, nurturing color palette */
+    --background: 30 50% 98%;
+    --foreground: 25 30% 20%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 30 40% 99%;
+    --card-foreground: 25 30% 20%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 30 40% 99%;
+    --popover-foreground: 25 30% 20%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Warm coral-peach primary */
+    --primary: 18 85% 65%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Soft sage secondary */
+    --secondary: 145 25% 92%;
+    --secondary-foreground: 145 30% 25%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted cream */
+    --muted: 35 30% 94%;
+    --muted-foreground: 25 20% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Gentle lavender accent */
+    --accent: 270 40% 94%;
+    --accent-foreground: 270 35% 30%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 30 25% 88%;
+    --input: 30 25% 88%;
+    --ring: 18 85% 65%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Custom Happify colors */
+    --happify-coral: 18 85% 65%;
+    --happify-coral-light: 18 85% 75%;
+    --happify-coral-dark: 18 75% 55%;
+    
+    --happify-sage: 145 30% 70%;
+    --happify-sage-light: 145 35% 85%;
+    --happify-sage-dark: 145 25% 45%;
+    
+    --happify-lavender: 270 45% 80%;
+    --happify-lavender-light: 270 50% 92%;
+    --happify-lavender-dark: 270 35% 55%;
+    
+    --happify-cream: 35 50% 95%;
+    --happify-cream-dark: 35 35% 88%;
+    
+    --happify-sky: 200 70% 80%;
+    --happify-sky-light: 200 75% 92%;
+    
+    --happify-warm: 40 80% 75%;
+    --happify-warm-light: 40 85% 90%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Gradients */
+    --gradient-sunrise: linear-gradient(135deg, hsl(18 85% 75%) 0%, hsl(40 80% 75%) 50%, hsl(35 50% 95%) 100%);
+    --gradient-calm: linear-gradient(135deg, hsl(145 35% 85%) 0%, hsl(200 75% 92%) 100%);
+    --gradient-mindful: linear-gradient(135deg, hsl(270 50% 92%) 0%, hsl(200 70% 90%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(35 50% 95%) 0%, hsl(30 50% 98%) 100%);
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -4px hsl(18 40% 50% / 0.12);
+    --shadow-glow: 0 0 30px -5px hsl(18 85% 65% / 0.25);
+    --shadow-card: 0 2px 12px -2px hsl(25 30% 30% / 0.08);
 
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 35 50% 95%;
+    --sidebar-foreground: 25 30% 20%;
+    --sidebar-primary: 18 85% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 270 40% 94%;
+    --sidebar-accent-foreground: 270 35% 30%;
+    --sidebar-border: 30 25% 88%;
+    --sidebar-ring: 18 85% 65%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 25 25% 10%;
+    --foreground: 35 30% 92%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 25 22% 14%;
+    --card-foreground: 35 30% 92%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 25 22% 14%;
+    --popover-foreground: 35 30% 92%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 18 80% 60%;
+    --primary-foreground: 25 25% 10%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 145 20% 20%;
+    --secondary-foreground: 145 30% 85%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 25 20% 20%;
+    --muted-foreground: 35 20% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 270 30% 25%;
+    --accent-foreground: 270 40% 85%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 25 20% 22%;
+    --input: 25 20% 22%;
+    --ring: 18 80% 60%;
+
+    --happify-coral: 18 75% 55%;
+    --happify-sage: 145 25% 50%;
+    --happify-lavender: 270 35% 55%;
+    --happify-cream: 35 25% 18%;
+    --happify-sky: 200 50% 45%;
+    --happify-warm: 40 65% 55%;
+
+    --gradient-sunrise: linear-gradient(135deg, hsl(18 75% 35%) 0%, hsl(40 65% 40%) 50%, hsl(25 25% 15%) 100%);
+    --gradient-calm: linear-gradient(135deg, hsl(145 25% 25%) 0%, hsl(200 50% 30%) 100%);
+    --gradient-mindful: linear-gradient(135deg, hsl(270 30% 25%) 0%, hsl(200 45% 25%) 100%);
+    
+    --sidebar-background: 25 22% 12%;
+    --sidebar-foreground: 35 30% 92%;
+    --sidebar-primary: 18 80% 60%;
+    --sidebar-primary-foreground: 25 25% 10%;
+    --sidebar-accent: 270 30% 25%;
+    --sidebar-accent-foreground: 270 40% 85%;
+    --sidebar-border: 25 20% 22%;
+    --sidebar-ring: 18 80% 60%;
   }
 }
 
@@ -100,6 +141,151 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Nunito', sans-serif;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Quicksand', sans-serif;
+  }
+}
+
+@layer components {
+  .happify-gradient-sunrise {
+    background: var(--gradient-sunrise);
+  }
+
+  .happify-gradient-calm {
+    background: var(--gradient-calm);
+  }
+
+  .happify-gradient-mindful {
+    background: var(--gradient-mindful);
+  }
+
+  .happify-shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .happify-shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .happify-shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .happify-card {
+    @apply rounded-2xl bg-card happify-shadow-card border border-border/50 p-6;
+  }
+
+  .happify-button-primary {
+    @apply bg-primary text-primary-foreground rounded-full px-6 py-3 font-medium 
+           transition-all duration-300 ease-out
+           hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .happify-button-secondary {
+    @apply bg-secondary text-secondary-foreground rounded-full px-6 py-3 font-medium 
+           transition-all duration-300 ease-out border border-border
+           hover:bg-secondary/80 hover:shadow-md;
+  }
+
+  .happify-button-ghost {
+    @apply text-foreground/70 rounded-full px-6 py-3 font-medium 
+           transition-all duration-300 ease-out
+           hover:bg-muted hover:text-foreground;
+  }
+
+  .happify-input {
+    @apply w-full rounded-xl border border-border bg-card px-4 py-3
+           text-foreground placeholder:text-muted-foreground
+           focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
+           transition-all duration-200;
+  }
+
+  .happify-text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-happify-warm;
+  }
+
+  .happify-fade-in {
+    animation: happifyFadeIn 0.5s ease-out forwards;
+  }
+
+  .happify-slide-up {
+    animation: happifySlideUp 0.5s ease-out forwards;
+  }
+
+  .happify-float {
+    animation: happifyFloat 6s ease-in-out infinite;
+  }
+
+  .happify-pulse-soft {
+    animation: happifyPulseSoft 3s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@keyframes happifyFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes happifySlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes happifyFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes happifyPulseSoft {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted/50 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full hover:bg-muted-foreground/30;
+}
+
+/* Selection color */
+::selection {
+  @apply bg-primary/20 text-foreground;
 }
