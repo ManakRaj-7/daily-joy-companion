@@ -4,11 +4,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, BookOpen, Loader2, Trash2 } from 'lucide-react';
+import { Plus, BookOpen, Loader2, Trash2, Search, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { MoodChart } from '@/components/journal/MoodChart';
 
 const moods = [
   { value: 'stressed', emoji: '😰', label: 'Stressed' },
@@ -25,6 +27,14 @@ const areas = [
   { value: 'relationships', label: '💕 Relationships' },
   { value: 'work', label: '💼 Work/Studies' },
   { value: 'digital', label: '📱 Digital' },
+];
+
+const journalTags = [
+  { value: 'reflection', label: '💭 Reflection' },
+  { value: 'gratitude', label: '🙏 Gratitude' },
+  { value: 'goals', label: '🎯 Goals' },
+  { value: 'dreams', label: '🌙 Dreams' },
+  { value: 'lessons', label: '📚 Lessons' },
 ];
 
 type MoodEntry = {
@@ -52,6 +62,11 @@ export default function Journal() {
   const [moodEntries, setMoodEntries] = useState<MoodEntry[]>([]);
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showMoodChart, setShowMoodChart] = useState(false);
+  
+  // Search
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   
   // New entry form
   const [selectedMood, setSelectedMood] = useState('');
@@ -59,6 +74,7 @@ export default function Journal() {
   const [note, setNote] = useState('');
   const [journalContent, setJournalContent] = useState('');
   const [journalTitle, setJournalTitle] = useState('');
+  const [journalTag, setJournalTag] = useState('reflection');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -78,8 +94,8 @@ export default function Journal() {
     
     try {
       const [moodRes, journalRes] = await Promise.all([
-        supabase.from('mood_entries').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
-        supabase.from('journal_entries').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20)
+        supabase.from('mood_entries').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(50),
+        supabase.from('journal_entries').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(50)
       ]);
       
       if (moodRes.data) setMoodEntries(moodRes.data);
@@ -138,7 +154,7 @@ export default function Journal() {
       user_id: user.id,
       title: journalTitle || null,
       content: journalContent,
-      entry_type: 'reflection'
+      entry_type: journalTag
     });
 
     if (error) {
@@ -147,6 +163,7 @@ export default function Journal() {
       toast({ title: "Entry saved! ✨", description: "Your thoughts are safe here." });
       setJournalTitle('');
       setJournalContent('');
+      setJournalTag('reflection');
       fetchEntries();
     }
     setIsSaving(false);
@@ -169,6 +186,15 @@ export default function Journal() {
   };
 
   const getMoodEmoji = (mood: string) => moods.find(m => m.value === mood)?.emoji || '😐';
+
+  // Filter journal entries
+  const filteredJournalEntries = journalEntries.filter(entry => {
+    const matchesSearch = !searchQuery || 
+      entry.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.content.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTag = !selectedTag || entry.entry_type === selectedTag;
+    return matchesSearch && matchesTag;
+  });
 
   return (
     <Layout>
@@ -211,6 +237,20 @@ export default function Journal() {
 
         {activeTab === 'mood' ? (
           <div className="space-y-6">
+            {/* Mood Chart Toggle */}
+            {moodEntries.length > 3 && (
+              <button
+                onClick={() => setShowMoodChart(!showMoodChart)}
+                className="flex items-center gap-2 text-sm text-primary hover:underline"
+              >
+                <TrendingUp className="w-4 h-4" />
+                {showMoodChart ? 'Hide mood trends' : 'View mood trends'}
+              </button>
+            )}
+
+            {/* Mood Chart */}
+            {showMoodChart && <MoodChart entries={moodEntries} />}
+
             {/* New Mood Entry */}
             <div className="happify-card">
               <h3 className="font-display font-semibold text-lg mb-4">How are you feeling right now?</h3>
@@ -269,7 +309,7 @@ export default function Journal() {
             ) : moodEntries.length > 0 ? (
               <div className="space-y-3">
                 <h3 className="font-medium text-muted-foreground">Recent moods</h3>
-                {moodEntries.map((entry) => (
+                {moodEntries.slice(0, 10).map((entry) => (
                   <div key={entry.id} className="happify-card p-4 flex items-start gap-3 group">
                     <span className="text-2xl">{getMoodEmoji(entry.mood)}</span>
                     <div className="flex-1 min-w-0">
@@ -301,7 +341,25 @@ export default function Journal() {
             <div className="happify-card">
               <h3 className="font-display font-semibold text-lg mb-4">Write your thoughts</h3>
               
-              <input
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {journalTags.map(tag => (
+                  <button
+                    key={tag.value}
+                    onClick={() => setJournalTag(tag.value)}
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-medium transition-all",
+                      journalTag === tag.value
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    )}
+                  >
+                    {tag.label}
+                  </button>
+                ))}
+              </div>
+              
+              <Input
                 type="text"
                 placeholder="Title (optional)"
                 value={journalTitle}
@@ -322,17 +380,63 @@ export default function Journal() {
               </Button>
             </div>
 
+            {/* Search & Filter */}
+            {journalEntries.length > 0 && (
+              <div className="space-y-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search entries..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="happify-input pl-10"
+                  />
+                </div>
+                
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setSelectedTag(null)}
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-medium transition-all",
+                      !selectedTag ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    All
+                  </button>
+                  {journalTags.map(tag => (
+                    <button
+                      key={tag.value}
+                      onClick={() => setSelectedTag(selectedTag === tag.value ? null : tag.value)}
+                      className={cn(
+                        "px-3 py-1 rounded-full text-xs font-medium transition-all",
+                        selectedTag === tag.value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {tag.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Past Journal Entries */}
             {isLoading ? (
               <div className="text-center py-8"><Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" /></div>
-            ) : journalEntries.length > 0 ? (
+            ) : filteredJournalEntries.length > 0 ? (
               <div className="space-y-3">
-                <h3 className="font-medium text-muted-foreground">Your reflections</h3>
-                {journalEntries.map((entry) => (
+                <h3 className="font-medium text-muted-foreground">
+                  {searchQuery || selectedTag ? `Showing ${filteredJournalEntries.length} entries` : 'Your reflections'}
+                </h3>
+                {filteredJournalEntries.map((entry) => (
                   <div key={entry.id} className="happify-card p-4 group">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        {entry.title && <h4 className="font-medium mb-1">{entry.title}</h4>}
+                        <div className="flex items-center gap-2 mb-1">
+                          {entry.title && <h4 className="font-medium">{entry.title}</h4>}
+                          <span className="text-xs bg-muted px-2 py-0.5 rounded-full capitalize">
+                            {journalTags.find(t => t.value === entry.entry_type)?.label || entry.entry_type}
+                          </span>
+                        </div>
                         <p className="text-sm text-muted-foreground line-clamp-3">{entry.content}</p>
                         <p className="text-xs text-muted-foreground mt-2">{format(new Date(entry.created_at), 'MMM d, yyyy')}</p>
                       </div>
@@ -346,6 +450,8 @@ export default function Journal() {
                   </div>
                 ))}
               </div>
+            ) : user && journalEntries.length > 0 ? (
+              <p className="text-center text-muted-foreground py-8">No matching entries found</p>
             ) : user && (
               <p className="text-center text-muted-foreground py-8">No journal entries yet. Start writing! ✍️</p>
             )}
