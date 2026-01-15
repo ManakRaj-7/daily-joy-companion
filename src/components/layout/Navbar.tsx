@@ -14,6 +14,7 @@ import {
   User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const navLinks = [
   { to: '/chat', label: 'Chat', icon: MessageCircle },
@@ -72,6 +73,7 @@ export function Navbar() {
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             {(user || isGuest) ? (
               <div className="flex items-center gap-3">
                 {isGuest && (

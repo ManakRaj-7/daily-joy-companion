@@ -4,11 +4,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, Sparkles, Smartphone, Wind, Check, RefreshCw, Loader2 } from 'lucide-react';
+import { Heart, Sparkles, Smartphone, Wind, Check, RefreshCw, Loader2, Plus, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, subDays, startOfDay, isSameDay } from 'date-fns';
+import { habitPool, habitCategories, type HabitCategory } from '@/data/habits';
+import { meditationScripts, meditationCategories } from '@/data/meditations';
+import { BreathingExercise } from '@/components/tools/BreathingExercise';
+import { SilenceChallenge } from '@/components/tools/SilenceChallenge';
+import { HabitStreak } from '@/components/tools/HabitStreak';
 
 type Habit = {
   id: string;
@@ -24,49 +30,34 @@ type GratitudeEntry = {
   created_at: string;
 };
 
-const meditationScripts = [
-  {
-    title: "1-Minute Breathing",
-    duration: "1 min",
-    script: "Close your eyes. Breathe in slowly for 4 counts... Hold for 4... Exhale for 6... Feel your shoulders drop. Repeat 3 times. You are exactly where you need to be."
-  },
-  {
-    title: "Body Scan",
-    duration: "2 min",
-    script: "Start at the top of your head. Notice any tension. Let it soften. Move to your forehead... your jaw... your shoulders... your chest... your belly... your legs... your feet. With each breath, let go a little more."
-  },
-  {
-    title: "Grounding",
-    duration: "1 min",
-    script: "Name 5 things you can see. 4 things you can touch. 3 things you can hear. 2 things you can smell. 1 thing you can taste. You are here. You are safe. You are present."
-  }
-];
-
 const detoxChallenges = [
-  { title: "Phone-free breakfast", desc: "Eat your first meal without looking at your phone" },
-  { title: "No phone in bedroom", desc: "Charge your phone outside your bedroom tonight" },
-  { title: "1-hour digital sunset", desc: "Stop screens 1 hour before bed" },
-  { title: "Walk without podcasts", desc: "Take a 10-minute walk in silence" },
-  { title: "App timeout", desc: "Set a 30-min daily limit on your most-used social app" }
+  { title: "Phone-free breakfast", desc: "Eat your first meal without looking at your phone", emoji: "🍳" },
+  { title: "No phone in bedroom", desc: "Charge your phone outside your bedroom tonight", emoji: "🛏️" },
+  { title: "1-hour digital sunset", desc: "Stop screens 1 hour before bed", emoji: "🌅" },
+  { title: "Walk without podcasts", desc: "Take a 10-minute walk in silence", emoji: "🚶" },
+  { title: "App timeout", desc: "Set a 30-min daily limit on your most-used social app", emoji: "⏰" },
+  { title: "Mindful scrolling", desc: "Before opening social media, take 3 breaths", emoji: "🧘" },
+  { title: "Notification vacation", desc: "Turn off all notifications for 2 hours", emoji: "🔕" },
+  { title: "No phone first hour", desc: "Don't check your phone for the first hour after waking", emoji: "☀️" },
+  { title: "Grayscale challenge", desc: "Use your phone in grayscale mode for a day", emoji: "⬛" },
+  { title: "One app delete", desc: "Remove one app that steals your attention", emoji: "🗑️" },
 ];
-
-const defaultHabits = {
-  body: ["Take 3 deep breaths right now", "Drink a full glass of water", "Stretch for 2 minutes", "Go outside for 5 minutes", "Do 10 jumping jacks"],
-  mind: ["Write down 1 thing you're grateful for", "Reframe a negative thought positively", "Say an affirmation out loud", "Compliment yourself sincerely", "Let go of 1 small worry"],
-  digital: ["Put phone face-down for 30 min", "Unfollow 1 account that doesn't serve you", "Turn off non-essential notifications", "Use grayscale mode for 1 hour", "Delete 1 unused app"]
-};
 
 export default function Tools() {
   const { user, isGuest } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const [activeSection, setActiveSection] = useState<'habits' | 'gratitude' | 'meditation' | 'detox'>('habits');
+  const [activeSection, setActiveSection] = useState<'habits' | 'gratitude' | 'meditation' | 'breathing' | 'silence' | 'detox'>('habits');
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [habitLogs, setHabitLogs] = useState<{ date: string; completed: number; total: number }[]>([]);
   const [gratitudeEntries, setGratitudeEntries] = useState<GratitudeEntry[]>([]);
   const [newGratitude, setNewGratitude] = useState('');
+  const [customHabit, setCustomHabit] = useState('');
+  const [customHabitType, setCustomHabitType] = useState<HabitCategory>('body');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedMeditationCategory, setSelectedMeditationCategory] = useState('all');
 
   useEffect(() => {
     if (user) {
@@ -80,13 +71,28 @@ export default function Tools() {
     if (!user) return;
     const today = format(new Date(), 'yyyy-MM-dd');
     
-    const [habitsRes, gratitudeRes] = await Promise.all([
+    // Fetch today's habits, gratitude entries, and habit history for streaks
+    const [habitsRes, gratitudeRes, historyRes] = await Promise.all([
       supabase.from('happiness_habits').select('*').eq('user_id', user.id).eq('date', today),
-      supabase.from('gratitude_entries').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10)
+      supabase.from('gratitude_entries').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10),
+      supabase.from('happiness_habits').select('date, completed').eq('user_id', user.id).gte('date', format(subDays(new Date(), 30), 'yyyy-MM-dd'))
     ]);
     
     if (habitsRes.data) setHabits(habitsRes.data);
     if (gratitudeRes.data) setGratitudeEntries(gratitudeRes.data);
+    
+    // Process habit history for streak calculation
+    if (historyRes.data) {
+      const grouped = historyRes.data.reduce((acc, h) => {
+        if (!acc[h.date]) acc[h.date] = { total: 0, completed: 0 };
+        acc[h.date].total++;
+        if (h.completed) acc[h.date].completed++;
+        return acc;
+      }, {} as Record<string, { total: number; completed: number }>);
+      
+      setHabitLogs(Object.entries(grouped).map(([date, data]) => ({ date, ...data })));
+    }
+    
     setIsLoading(false);
   };
 
@@ -102,11 +108,11 @@ export default function Tools() {
     // Delete existing habits for today first
     await supabase.from('happiness_habits').delete().eq('user_id', user.id).eq('date', today);
     
-    const newHabits = [
-      { habit_type: 'body', description: defaultHabits.body[Math.floor(Math.random() * defaultHabits.body.length)] },
-      { habit_type: 'mind', description: defaultHabits.mind[Math.floor(Math.random() * defaultHabits.mind.length)] },
-      { habit_type: 'digital', description: defaultHabits.digital[Math.floor(Math.random() * defaultHabits.digital.length)] }
-    ];
+    // Pick random habits from the expanded pool
+    const newHabits = habitCategories.map(cat => ({
+      habit_type: cat.id,
+      description: habitPool[cat.id][Math.floor(Math.random() * habitPool[cat.id].length)]
+    }));
 
     const { error } = await supabase.from('happiness_habits').insert(
       newHabits.map(h => ({ ...h, user_id: user.id, date: today }))
@@ -116,6 +122,29 @@ export default function Tools() {
       toast({ title: "Error generating habits", variant: "destructive" });
     } else {
       toast({ title: "New habits generated! 🌱" });
+      fetchData();
+    }
+    setIsSaving(false);
+  };
+
+  const addCustomHabit = async () => {
+    if (!customHabit.trim() || !user) return;
+    
+    setIsSaving(true);
+    const today = format(new Date(), 'yyyy-MM-dd');
+    
+    const { error } = await supabase.from('happiness_habits').insert({
+      user_id: user.id,
+      habit_type: customHabitType,
+      description: customHabit.trim(),
+      date: today
+    });
+
+    if (error) {
+      toast({ title: "Couldn't add habit", variant: "destructive" });
+    } else {
+      toast({ title: "Custom habit added! ✨" });
+      setCustomHabit('');
       fetchData();
     }
     setIsSaving(false);
@@ -156,17 +185,19 @@ export default function Tools() {
     { id: 'habits', label: 'Daily Habits', icon: Sparkles },
     { id: 'gratitude', label: 'Gratitude', icon: Heart },
     { id: 'meditation', label: 'Meditation', icon: Wind },
+    { id: 'breathing', label: 'Breathing', icon: Wind },
+    { id: 'silence', label: 'Silence', icon: Timer },
     { id: 'detox', label: 'Digital Detox', icon: Smartphone },
   ];
 
-  const getHabitIcon = (type: string) => {
-    switch (type) {
-      case 'body': return '🧘';
-      case 'mind': return '🧠';
-      case 'digital': return '📱';
-      default: return '✨';
-    }
+  const getHabitEmoji = (type: string) => {
+    const cat = habitCategories.find(c => c.id === type);
+    return cat?.label.split(' ')[0] || '✨';
   };
+
+  const filteredMeditations = selectedMeditationCategory === 'all' 
+    ? meditationScripts 
+    : meditationScripts.filter(m => m.category === selectedMeditationCategory);
 
   return (
     <Layout>
@@ -177,7 +208,7 @@ export default function Tools() {
         </div>
 
         {/* Section Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4">
           {sections.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -198,6 +229,9 @@ export default function Tools() {
         {/* Daily Habits */}
         {activeSection === 'habits' && (
           <div className="space-y-4">
+            {/* Streak Component */}
+            {habitLogs.length > 0 && <HabitStreak logs={habitLogs} />}
+            
             <div className="flex items-center justify-between">
               <h3 className="font-display font-semibold">Today's Habits</h3>
               <Button size="sm" variant="outline" onClick={generateDailyHabits} disabled={isSaving} className="rounded-full">
@@ -227,7 +261,7 @@ export default function Tools() {
                       habit.completed && "bg-happify-sage-light/50"
                     )}
                   >
-                    <span className="text-2xl">{getHabitIcon(habit.habit_type)}</span>
+                    <span className="text-2xl">{getHabitEmoji(habit.habit_type)}</span>
                     <div className="flex-1">
                       <p className={cn("font-medium", habit.completed && "line-through text-muted-foreground")}>
                         {habit.description}
@@ -242,6 +276,38 @@ export default function Tools() {
                     </div>
                   </button>
                 ))}
+              </div>
+            )}
+
+            {/* Custom Habit */}
+            {user && (
+              <div className="happify-card mt-6">
+                <h4 className="font-medium mb-3">Add Custom Habit</h4>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {habitCategories.map(cat => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setCustomHabitType(cat.id)}
+                      className={cn(
+                        "px-3 py-1 rounded-full text-sm transition-all",
+                        customHabitType === cat.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Your custom habit..."
+                    value={customHabit}
+                    onChange={(e) => setCustomHabit(e.target.value)}
+                    className="happify-input"
+                  />
+                  <Button onClick={addCustomHabit} disabled={!customHabit.trim() || isSaving} className="rounded-xl">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -278,11 +344,30 @@ export default function Tools() {
           </div>
         )}
 
-        {/* Meditation */}
+        {/* Meditation Scripts */}
         {activeSection === 'meditation' && (
           <div className="space-y-4">
             <p className="text-muted-foreground">Simple scripts to guide your practice</p>
-            {meditationScripts.map((script, i) => (
+            
+            {/* Category Filter */}
+            <div className="flex flex-wrap gap-2 pb-2">
+              {meditationCategories.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedMeditationCategory(cat.id)}
+                  className={cn(
+                    "px-3 py-1 rounded-full text-xs font-medium transition-all",
+                    selectedMeditationCategory === cat.id
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  )}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {filteredMeditations.map((script, i) => (
               <div key={i} className="happify-card">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-display font-semibold">{script.title}</h3>
@@ -294,19 +379,46 @@ export default function Tools() {
           </div>
         )}
 
+        {/* Breathing Exercise */}
+        {activeSection === 'breathing' && (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <p className="text-muted-foreground">Follow the circle and breathe</p>
+            </div>
+            <div className="happify-card">
+              <BreathingExercise />
+            </div>
+          </div>
+        )}
+
+        {/* Silence Challenge */}
+        {activeSection === 'silence' && (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <h3 className="font-display font-semibold text-xl mb-2">1-Minute Silence Challenge</h3>
+              <p className="text-muted-foreground">Can you sit in complete stillness?</p>
+            </div>
+            <div className="happify-card">
+              <SilenceChallenge />
+            </div>
+          </div>
+        )}
+
         {/* Digital Detox */}
         {activeSection === 'detox' && (
           <div className="space-y-4">
             <p className="text-muted-foreground">Pick one challenge to try today</p>
-            {detoxChallenges.map((challenge, i) => (
-              <div key={i} className="happify-card p-4 flex items-start gap-4">
-                <span className="text-2xl">📵</span>
-                <div>
-                  <h4 className="font-medium">{challenge.title}</h4>
-                  <p className="text-sm text-muted-foreground">{challenge.desc}</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {detoxChallenges.map((challenge, i) => (
+                <div key={i} className="happify-card p-4 flex items-start gap-4 hover:shadow-soft transition-all">
+                  <span className="text-2xl">{challenge.emoji}</span>
+                  <div>
+                    <h4 className="font-medium">{challenge.title}</h4>
+                    <p className="text-sm text-muted-foreground">{challenge.desc}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </div>
