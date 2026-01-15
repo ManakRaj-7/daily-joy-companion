@@ -18,7 +18,6 @@ CREATE TABLE public.mood_entries (
   note TEXT,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
-
 -- Create journal entries table
 CREATE TABLE public.journal_entries (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -29,7 +28,6 @@ CREATE TABLE public.journal_entries (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
-
 -- Create chat messages table for logged-in users
 CREATE TABLE public.chat_messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
