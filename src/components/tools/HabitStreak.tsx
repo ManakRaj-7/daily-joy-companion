@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { format, subDays, startOfDay, isSameDay } from 'date-fns';
+import { format, subDays, startOfDay, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Flame, Trophy } from 'lucide-react';
 
@@ -13,17 +13,27 @@ type Props = {
   logs: HabitLog[];
 };
 
+// Helper to compare dates by their YYYY-MM-DD string representation
+const isSameDateString = (dateStr: string, date: Date): boolean => {
+  const formatted = format(date, 'yyyy-MM-dd');
+  return dateStr === formatted;
+};
+
 export function HabitStreak({ logs }: Props) {
   const { currentStreak, longestStreak, last7Days } = useMemo(() => {
-    // Calculate last 7 days for display
     const today = startOfDay(new Date());
-    const last7: { date: Date; completed: number; total: number }[] = [];
+    const todayStr = format(today, 'yyyy-MM-dd');
+    
+    // Calculate last 7 days for display
+    const last7: { date: Date; dateStr: string; completed: number; total: number }[] = [];
     
     for (let i = 6; i >= 0; i--) {
       const date = subDays(today, i);
-      const log = logs.find(l => isSameDay(new Date(l.date), date));
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const log = logs.find(l => l.date === dateStr);
       last7.push({
         date,
+        dateStr,
         completed: log?.completed || 0,
         total: log?.total || 0,
       });
@@ -31,22 +41,36 @@ export function HabitStreak({ logs }: Props) {
 
     // Calculate current streak - check consecutive days from today backwards
     let current = 0;
+    let streakStarted = false;
+    
     for (let i = 0; i <= 30; i++) {
       const checkDate = subDays(today, i);
-      const log = logs.find(l => isSameDay(new Date(l.date), checkDate));
+      const checkDateStr = format(checkDate, 'yyyy-MM-dd');
+      const log = logs.find(l => l.date === checkDateStr);
       
       // If we have a log for this day and all habits are complete
       if (log && log.completed === log.total && log.total > 0) {
         current++;
-      } else if (log && log.total > 0) {
-        // Day exists but not all habits completed - break streak
-        break;
+        streakStarted = true;
+      } else if (log && log.total > 0 && log.completed < log.total) {
+        // Day exists but not all habits completed
+        if (streakStarted) {
+          // Already had a streak going, break it
+          break;
+        } else if (i === 0) {
+          // Today is incomplete, no streak starts
+          break;
+        } else {
+          break;
+        }
       } else if (i === 0) {
         // Today has no habits yet - that's okay, check yesterday
         continue;
       } else {
-        // No habits for this day - break streak
-        break;
+        // No habits for this day - break streak only if we've started
+        if (streakStarted) break;
+        // If no streak started and no habits, keep looking back
+        continue;
       }
     }
 
@@ -56,14 +80,14 @@ export function HabitStreak({ logs }: Props) {
     
     const sortedLogs = [...logs]
       .filter(l => l.completed === l.total && l.total > 0)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      .sort((a, b) => a.date.localeCompare(b.date));
     
     for (let i = 0; i < sortedLogs.length; i++) {
       if (i === 0) {
         tempStreak = 1;
       } else {
-        const prevDate = new Date(sortedLogs[i - 1].date);
-        const currDate = new Date(sortedLogs[i].date);
+        const prevDate = parseISO(sortedLogs[i - 1].date);
+        const currDate = parseISO(sortedLogs[i].date);
         const diffDays = Math.round((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
         
         if (diffDays === 1) {
@@ -107,13 +131,13 @@ export function HabitStreak({ logs }: Props) {
       <div>
         <h4 className="text-sm font-medium text-muted-foreground mb-3">This Week</h4>
         <div className="flex justify-between gap-2">
-          {last7Days.map(({ date, completed, total }) => {
-            const isToday = isSameDay(date, new Date());
+          {last7Days.map(({ date, dateStr, completed, total }) => {
+            const isToday = dateStr === format(new Date(), 'yyyy-MM-dd');
             const isPerfect = completed === total && total > 0;
             const hasPartial = completed > 0 && completed < total;
             
             return (
-              <div key={date.toISOString()} className="flex-1 text-center">
+              <div key={dateStr} className="flex-1 text-center">
                 <div
                   className={cn(
                     "w-10 h-10 mx-auto rounded-full flex items-center justify-center text-sm font-medium transition-all",
