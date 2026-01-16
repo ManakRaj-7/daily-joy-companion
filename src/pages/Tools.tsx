@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -7,14 +6,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, Sparkles, Smartphone, Wind, Check, RefreshCw, Loader2, Plus, Timer } from 'lucide-react';
+import { Heart, Sparkles, Smartphone, Wind, Check, RefreshCw, Loader2, Plus, Timer, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format, subDays, startOfDay, isSameDay } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { habitPool, habitCategories, type HabitCategory } from '@/data/habits';
 import { meditationScripts, meditationCategories } from '@/data/meditations';
 import { BreathingExercise } from '@/components/tools/BreathingExercise';
 import { SilenceChallenge } from '@/components/tools/SilenceChallenge';
 import { HabitStreak } from '@/components/tools/HabitStreak';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type Habit = {
   id: string;
@@ -44,8 +53,7 @@ const detoxChallenges = [
 ];
 
 export default function Tools() {
-  const { user, isGuest } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const { toast } = useToast();
   
   const [activeSection, setActiveSection] = useState<'habits' | 'gratitude' | 'meditation' | 'breathing' | 'silence' | 'detox'>('habits');
@@ -58,6 +66,7 @@ export default function Tools() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedMeditationCategory, setSelectedMeditationCategory] = useState('all');
+  const [showRefreshConfirm, setShowRefreshConfirm] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -96,19 +105,28 @@ export default function Tools() {
     setIsLoading(false);
   };
 
+  const handleRefreshClick = () => {
+    if (habits.length > 0 && habits.some(h => h.completed)) {
+      setShowRefreshConfirm(true);
+    } else {
+      generateDailyHabits();
+    }
+  };
+
   const generateDailyHabits = async () => {
     if (!user) {
       toast({ title: "Sign in to save habits", variant: "destructive" });
       return;
     }
 
+    setShowRefreshConfirm(false);
     setIsSaving(true);
     const today = format(new Date(), 'yyyy-MM-dd');
     
     // Delete existing habits for today first
     await supabase.from('happiness_habits').delete().eq('user_id', user.id).eq('date', today);
     
-    // Pick random habits from the expanded pool
+    // Pick random habits from the expanded pool (one from each category)
     const newHabits = habitCategories.map(cat => ({
       habit_type: cat.id,
       description: habitPool[cat.id][Math.floor(Math.random() * habitPool[cat.id].length)]
@@ -119,7 +137,8 @@ export default function Tools() {
     );
 
     if (error) {
-      toast({ title: "Error generating habits", variant: "destructive" });
+      console.error('Habit insert error:', error);
+      toast({ title: "Error generating habits", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "New habits generated! 🌱" });
       fetchData();
@@ -234,11 +253,30 @@ export default function Tools() {
             
             <div className="flex items-center justify-between">
               <h3 className="font-display font-semibold">Today's Habits</h3>
-              <Button size="sm" variant="outline" onClick={generateDailyHabits} disabled={isSaving} className="rounded-full">
+              <Button size="sm" variant="outline" onClick={handleRefreshClick} disabled={isSaving} className="rounded-full">
                 <RefreshCw className={cn("w-4 h-4 mr-2", isSaving && "animate-spin")} />
                 {habits.length === 0 ? 'Generate' : 'Refresh'}
               </Button>
             </div>
+            
+            {/* Refresh Confirmation Dialog */}
+            <AlertDialog open={showRefreshConfirm} onOpenChange={setShowRefreshConfirm}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-amber-500" />
+                    Refresh habits?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will replace all your current habits for today with new ones. Your progress on completed habits will be lost.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Keep Current</AlertDialogCancel>
+                  <AlertDialogAction onClick={generateDailyHabits}>Generate New</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
             {isLoading ? (
               <div className="text-center py-8"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>

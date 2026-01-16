@@ -29,36 +29,50 @@ export function HabitStreak({ logs }: Props) {
       });
     }
 
-    // Calculate current streak
+    // Calculate current streak - check consecutive days from today backwards
     let current = 0;
-    const sortedLogs = [...logs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    
-    for (let i = 0; i < sortedLogs.length; i++) {
-      const log = sortedLogs[i];
-      const logDate = startOfDay(new Date(log.date));
-      const expectedDate = subDays(today, i);
+    for (let i = 0; i <= 30; i++) {
+      const checkDate = subDays(today, i);
+      const log = logs.find(l => isSameDay(new Date(l.date), checkDate));
       
-      if (isSameDay(logDate, expectedDate) && log.completed === log.total && log.total > 0) {
+      // If we have a log for this day and all habits are complete
+      if (log && log.completed === log.total && log.total > 0) {
         current++;
-      } else if (!isSameDay(logDate, expectedDate)) {
+      } else if (log && log.total > 0) {
+        // Day exists but not all habits completed - break streak
         break;
+      } else if (i === 0) {
+        // Today has no habits yet - that's okay, check yesterday
+        continue;
       } else {
+        // No habits for this day - break streak
         break;
       }
     }
 
-    // Calculate longest streak (simplified - just look at consecutive days)
+    // Calculate longest streak by sorting and checking consecutive completion dates
     let longest = 0;
     let tempStreak = 0;
     
+    const sortedLogs = [...logs]
+      .filter(l => l.completed === l.total && l.total > 0)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
     for (let i = 0; i < sortedLogs.length; i++) {
-      const log = sortedLogs[i];
-      if (log.completed === log.total && log.total > 0) {
-        tempStreak++;
-        longest = Math.max(longest, tempStreak);
+      if (i === 0) {
+        tempStreak = 1;
       } else {
-        tempStreak = 0;
+        const prevDate = new Date(sortedLogs[i - 1].date);
+        const currDate = new Date(sortedLogs[i].date);
+        const diffDays = Math.round((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+          tempStreak++;
+        } else {
+          tempStreak = 1;
+        }
       }
+      longest = Math.max(longest, tempStreak);
     }
 
     return { currentStreak: current, longestStreak: longest, last7Days: last7 };
