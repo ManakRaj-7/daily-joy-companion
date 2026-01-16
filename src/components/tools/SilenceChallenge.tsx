@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, RotateCcw, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -10,6 +10,41 @@ const durations = [
   { label: '10 min', seconds: 600 },
 ];
 
+// Generate a gentle bell/chime sound using Web Audio API
+const playCompletionSound = () => {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    // Create a gentle bell-like tone
+    const playTone = (frequency: number, startTime: number, duration: number) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
+      
+      // Gentle fade in and out
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime + startTime);
+      gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + startTime + 0.1);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + startTime + duration);
+      
+      oscillator.start(audioContext.currentTime + startTime);
+      oscillator.stop(audioContext.currentTime + startTime + duration);
+    };
+    
+    // Play a gentle three-note chime (like a meditation bell)
+    playTone(523.25, 0, 1.5);      // C5
+    playTone(659.25, 0.15, 1.3);   // E5
+    playTone(783.99, 0.3, 1.8);    // G5
+    
+  } catch (error) {
+    console.log('Audio not supported:', error);
+  }
+};
+
 export function SilenceChallenge() {
   const [selectedDuration, setSelectedDuration] = useState(60);
   const [timeLeft, setTimeLeft] = useState(60);
@@ -17,15 +52,20 @@ export function SilenceChallenge() {
   const [isComplete, setIsComplete] = useState(false);
   const intervalRef = useRef<number | null>(null);
 
+  const handleComplete = useCallback(() => {
+    setIsActive(false);
+    setIsComplete(true);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    playCompletionSound();
+  }, []);
+
   useEffect(() => {
     if (!isActive) return;
 
     intervalRef.current = window.setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          setIsActive(false);
-          setIsComplete(true);
-          if (intervalRef.current) clearInterval(intervalRef.current);
+          handleComplete();
           return 0;
         }
         return prev - 1;
@@ -35,7 +75,7 @@ export function SilenceChallenge() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isActive]);
+  }, [isActive, handleComplete]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
