@@ -70,7 +70,7 @@ export function AchievementBadges() {
 
       // Fetch kindness count
       const { count: kindnessCount } = await supabase
-        .from('kindness_challenges')
+        .from('kindness_challenges' as any)
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id);
 

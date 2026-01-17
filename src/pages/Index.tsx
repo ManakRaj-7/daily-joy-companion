@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Layout } from '@/components/layout/Layout';
 import { MessageCircle, Heart, Sparkles, Leaf, Moon, Smartphone } from 'lucide-react';
+import { DailyAffirmation } from '@/components/home/DailyAffirmation';
 
 const features = [
   { icon: Heart, title: 'Body Wellness', desc: 'Breathing, relaxation, sleep' },
@@ -53,6 +54,13 @@ export default function Index() {
                 </Button>
               </Link>
             </div>
+          </div>
+        </section>
+
+        {/* Daily Affirmation */}
+        <section className="px-4 -mt-16 relative z-10">
+          <div className="max-w-2xl mx-auto">
+            <DailyAffirmation />
           </div>
         </section>
 

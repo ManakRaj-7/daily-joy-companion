@@ -143,6 +143,27 @@ export type Database = {
         }
         Relationships: []
       }
+      kindness_challenges: {
+        Row: {
+          challenge_title: string
+          completed_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          challenge_title: string
+          completed_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          challenge_title?: string
+          completed_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mood_entries: {
         Row: {
           affected_area: string | null
