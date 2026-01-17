@@ -8,12 +8,6 @@ import { Check, RefreshCw, Heart, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
-type CompletedChallenge = {
-  id: string;
-  challenge_title: string;
-  completed_at: string;
-};
-
 export function KindnessChallenge() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -40,7 +34,7 @@ export function KindnessChallenge() {
     const today = format(new Date(), 'yyyy-MM-dd');
     
     const { data } = await supabase
-      .from('kindness_challenges')
+      .from('kindness_challenges' as any)
       .select('id')
       .eq('user_id', user.id)
       .gte('completed_at', `${today}T00:00:00`)
@@ -53,7 +47,7 @@ export function KindnessChallenge() {
     if (!user) return;
     
     const { count } = await supabase
-      .from('kindness_challenges')
+      .from('kindness_challenges' as any)
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id);
     
@@ -68,7 +62,7 @@ export function KindnessChallenge() {
     
     setIsLoading(true);
     
-    const { error } = await supabase.from('kindness_challenges').insert({
+    const { error } = await supabase.from('kindness_challenges' as any).insert({
       user_id: user.id,
       challenge_title: todayChallenge.title
     });
@@ -88,26 +82,30 @@ export function KindnessChallenge() {
   };
 
   const playSuccessSound = () => {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
-    
-    notes.forEach((freq, i) => {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
       
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.value = freq;
-      oscillator.type = 'sine';
-      
-      const startTime = audioContext.currentTime + i * 0.1;
-      gainNode.gain.setValueAtTime(0.15, startTime);
-      gainNode.gain.exponentialDecayTo && gainNode.gain.exponentialDecayTo(0.01, startTime + 0.3);
-      
-      oscillator.start(startTime);
-      oscillator.stop(startTime + 0.3);
-    });
+      notes.forEach((freq, i) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = freq;
+        oscillator.type = 'sine';
+        
+        const startTime = audioContext.currentTime + i * 0.1;
+        gainNode.gain.setValueAtTime(0.15, startTime);
+        gainNode.gain.exponentialDecayTo?.(0.01, startTime + 0.3);
+        
+        oscillator.start(startTime);
+        oscillator.stop(startTime + 0.3);
+      });
+    } catch (e) {
+      // Audio not supported
+    }
   };
 
   const getRandomChallenge = () => {

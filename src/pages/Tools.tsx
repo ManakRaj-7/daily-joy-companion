@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, Sparkles, Smartphone, Wind, Check, RefreshCw, Loader2, Plus, Timer, AlertTriangle } from 'lucide-react';
+import { Heart, Sparkles, Smartphone, Wind, Check, RefreshCw, Loader2, Plus, Timer, AlertTriangle, Brain, Trophy, HeartHandshake } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, subDays } from 'date-fns';
 import { habitPool, habitCategories, type HabitCategory } from '@/data/habits';
@@ -14,6 +14,9 @@ import { meditationScripts, meditationCategories } from '@/data/meditations';
 import { BreathingExercise } from '@/components/tools/BreathingExercise';
 import { SilenceChallenge } from '@/components/tools/SilenceChallenge';
 import { HabitStreak } from '@/components/tools/HabitStreak';
+import { FocusTimer } from '@/components/tools/FocusTimer';
+import { KindnessChallenge } from '@/components/tools/KindnessChallenge';
+import { AchievementBadges } from '@/components/tools/AchievementBadges';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,7 +59,7 @@ export default function Tools() {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [activeSection, setActiveSection] = useState<'habits' | 'gratitude' | 'meditation' | 'breathing' | 'silence' | 'detox'>('habits');
+  const [activeSection, setActiveSection] = useState<'habits' | 'gratitude' | 'meditation' | 'breathing' | 'silence' | 'detox' | 'focus' | 'kindness' | 'badges'>('habits');
   const [habits, setHabits] = useState<Habit[]>([]);
   const [habitLogs, setHabitLogs] = useState<{ date: string; completed: number; total: number }[]>([]);
   const [gratitudeEntries, setGratitudeEntries] = useState<GratitudeEntry[]>([]);
@@ -201,12 +204,15 @@ export default function Tools() {
   };
 
   const sections = [
-    { id: 'habits', label: 'Daily Habits', icon: Sparkles },
+    { id: 'habits', label: 'Habits', icon: Sparkles },
+    { id: 'kindness', label: 'Kindness', icon: HeartHandshake },
+    { id: 'badges', label: 'Badges', icon: Trophy },
+    { id: 'focus', label: 'Focus', icon: Brain },
     { id: 'gratitude', label: 'Gratitude', icon: Heart },
     { id: 'meditation', label: 'Meditation', icon: Wind },
     { id: 'breathing', label: 'Breathing', icon: Wind },
     { id: 'silence', label: 'Silence', icon: Timer },
-    { id: 'detox', label: 'Digital Detox', icon: Smartphone },
+    { id: 'detox', label: 'Detox', icon: Smartphone },
   ];
 
   const getHabitEmoji = (type: string) => {
@@ -456,6 +462,43 @@ export default function Tools() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Focus Timer */}
+        {activeSection === 'focus' && (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <h3 className="font-display font-semibold text-xl mb-2">Pomodoro Focus Timer</h3>
+              <p className="text-muted-foreground">Stay focused with timed work sessions</p>
+            </div>
+            <div className="happify-card">
+              <FocusTimer />
+            </div>
+          </div>
+        )}
+
+        {/* Kindness Challenge */}
+        {activeSection === 'kindness' && (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <h3 className="font-display font-semibold text-xl mb-2">Daily Kindness Challenge</h3>
+              <p className="text-muted-foreground">Small acts that make a big difference</p>
+            </div>
+            <KindnessChallenge />
+          </div>
+        )}
+
+        {/* Achievement Badges */}
+        {activeSection === 'badges' && (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <h3 className="font-display font-semibold text-xl mb-2">Your Achievements</h3>
+              <p className="text-muted-foreground">Earn badges as you build happy habits</p>
+            </div>
+            <div className="happify-card">
+              <AchievementBadges />
             </div>
           </div>
         )}
